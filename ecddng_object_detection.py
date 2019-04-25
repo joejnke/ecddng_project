@@ -36,7 +36,7 @@ class ecddng_obj_detection():
 
         self.detection_graph = None
 
-        self.category_index = None
+        self.category_index = label_map_util.create_category_index_from_labelmap(self.PATH_TO_LABELS, use_display_name=True)
 
     def download_model(self):
         #TODO
@@ -50,10 +50,6 @@ class ecddng_obj_detection():
                 serialized_graph = fid.read()
                 od_graph_def.ParseFromString(serialized_graph)
                 tf.import_graph_def(od_graph_def, name='')
-        #TODO
-
-    def load_label_map(self):
-        self.category_index = label_map_util.create_category_index_from_labelmap(self.PATH_TO_LABELS, use_display_name=True)
 
     def load_image_into_numpy_array(self, image):
         (im_width, im_height) = image.size
@@ -118,7 +114,8 @@ class ecddng_obj_detection():
             use_normalized_coordinates=True,
             line_thickness=8)
         plt.figure(figsize=fig_size)
-        return plt.imshow(image_np)
+        image_np = plt.imshow(image_np)
+        return image_np
 
     def run_inference_for_multiple_image(self):
         #TODO
@@ -133,12 +130,12 @@ def run_ecddng_obj_detection():
 
     try_ecddng= ecddng_obj_detection(MODEL_PATH=MODEL_PATH, PATH_TO_LABELS=PATH_TO_LABELS,NUM_CLASSES=3)
     try_ecddng.load_frozen_tf_model()
-    try_ecddng.load_label_map()
 
     image_np = try_ecddng.load_image_into_numpy_array(Image.open(image_path))
 
     output_dict=try_ecddng.run_inference_for_single_image(image=image_np, graph= try_ecddng.detection_graph)
     try_ecddng.visualize_boxes_and_labels_on_image_array(detection_output_dict= output_dict, image_np= image_np)
+
     plt.show()
 
     pass
