@@ -90,11 +90,12 @@ class ecda_gui:
         self.style.map('.', background=
         [('selected', _compcolor), ('active', _ana2color)])
 
-        top.geometry("934x504+284+162")
-        top.title("Schematic Detector")
-        top.configure(background="#1f2b54")
+        self.top = top
+        self.top.geometry("934x504+284+162")
+        self.top.title("Schematic Detector")
+        self.top.configure(background="#1f2b54")
 
-        self.schematic_img_frame = tk.LabelFrame(top)
+        self.schematic_img_frame = tk.LabelFrame(self.top)
         self.schematic_img_frame.place(relx=0.021, rely=0.02, relheight=0.843
                                        , relwidth=0.642)
         self.schematic_img_frame.configure(relief='groove')
@@ -107,37 +108,37 @@ class ecda_gui:
                              , bordermode='ignore')
         self.image_lbl.configure(width=569)
 
-        self.browse_btn = tk.Button(top)
+        self.browse_btn = tk.Button(self.top)
         self.browse_btn.place(relx=0.118, rely=0.913, height=25, width=140)
         self.browse_btn.configure(text='''Browse''')
-        self.browse_btn.configure(command=lambda: open_image())
+        self.browse_btn.configure(command=lambda: self.open_image())
         self.browse_btn.configure(width=140)
 
-        self.process_btn = tk.Button(top)
+        self.process_btn = tk.Button(self.top)
         self.process_btn.place(relx=0.332, rely=0.913, height=25, width=110)
         self.process_btn.configure(text='''Process''')
-        self.process_btn.configure(command=lambda: process_ckt())
+        self.process_btn.configure(command=lambda: self.process_ckt())
         self.process_btn.configure(width=110)
 
-        self.simulate_btn = tk.Button(top)
+        self.simulate_btn = tk.Button(self.top)
         self.simulate_btn.place(relx=0.516, rely=0.913, height=25, width=110)
         self.simulate_btn.configure(text='''Simulate''')
-        self.simulate_btn.configure(command=lambda: simulate_ckt())
+        self.simulate_btn.configure(command=lambda: self.simulate_ckt())
         self.simulate_btn.configure(width=110)
 
-        self.btn_sprtr = ttk.Separator(top)
+        self.btn_sprtr = ttk.Separator(self.top)
         self.btn_sprtr.place(relx=0.3, rely=0.893, relheight=0.079)
         self.btn_sprtr.configure(orient="vertical")
 
-        self.btn_sprtr2 = ttk.Separator(top)
+        self.btn_sprtr2 = ttk.Separator(self.top)
         self.btn_sprtr2.place(relx=0.484, rely=0.893, relheight=0.079)
         self.btn_sprtr2.configure(orient="vertical")
 
-        self.frame_sprtr = ttk.Separator(top)
+        self.frame_sprtr = ttk.Separator(self.top)
         self.frame_sprtr.place(relx=0.707, rely=0.06, relheight=0.754)
         self.frame_sprtr.configure(orient="vertical")
 
-        self.component_detail = tk.Message(top)
+        self.component_detail = tk.Message(self.top)
         self.component_detail.place(relx=0.728, rely=0.079, relheight=0.688
                                     , relwidth=0.247)
         self.component_detail.configure(text='''Message''')
@@ -145,58 +146,58 @@ class ecda_gui:
 
         #initializing the detection model
 
-        MODEL_PATH = '/home/kira/cloned/tensorflow object detection API/models/research/object_detection/rlc_graph'
-        PATH_TO_LABELS = '/home/kira/cloned/tensorflow object detection API/models/research/object_detection/training/object-detection.pbtxt'
+        self.MODEL_PATH = '/home/kira/cloned/tensorflow object detection API/models/research/object_detection/rlc_graph'
+        self.PATH_TO_LABELS = '/home/kira/cloned/tensorflow object detection API/models/research/object_detection/training/object-detection.pbtxt'
         global ckt_image
-        object_detector = ecdod.ecddng_obj_detection(MODEL_PATH=MODEL_PATH, PATH_TO_LABELS=PATH_TO_LABELS, NUM_CLASSES=3)
+        self.object_detector = ecdod.ecddng_obj_detection(MODEL_PATH=self.MODEL_PATH, PATH_TO_LABELS=self.PATH_TO_LABELS, NUM_CLASSES=3)
 
         # end of model initialization
 
-        def open_image():
-            global ckt_image
-            ckt_image = filedialog.askopenfilename(
-                initialdir="/home/kira/cloned/tensorflow object detection API/models/research/object_detection/test_images",
-                title="Select circuit image", filetypes=(("jpeg", "*.jpg"), ("All files", "*.*")))
-            unresized = Image.open(ckt_image)
-            image_path = ImageTk.PhotoImage(unresized.resize((560, 370), Image.ANTIALIAS))
-            self.image_lbl.configure(image=image_path)
-            self.image_lbl.pack(self, expand=1)
-            self.schematic_img_frame.pack_propagate(1)
-            self.schematic_img_frame.pack()
+    def open_image(self):
+        global ckt_image
+        ckt_image = filedialog.askopenfilename(
+            initialdir="/home/kira/cloned/tensorflow object detection API/models/research/object_detection/test_images",
+            title="Select circuit image", filetypes=(("jpeg", "*.jpg"), ("All files", "*.*")))
+        unresized = Image.open(ckt_image)
+        image_path = ImageTk.PhotoImage(unresized.resize((560, 370), Image.ANTIALIAS))
+        self.image_lbl.configure(image=image_path)
+        self.image_lbl.pack(self, expand=1)
+        self.schematic_img_frame.pack_propagate(1)
+        self.schematic_img_frame.pack()
 
-        def process_ckt():
-            global ckt_image, box_coord, box_class
-            image = Image.open(ckt_image)
-            # the array based representation of the image will be used later in order to prepare the
-            # result image with boxes and labels on it.
-            image_np = object_detector.load_image_into_numpy_array(image)
-            # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
-            # image_np_expanded = np.expand_dims(image_np, axis=0)
-            # Actual detection.
-            object_detector.load_frozen_tf_model()
+    def process_ckt(self):
+        global ckt_image, box_coord, box_class
+        image = Image.open(ckt_image)
+        # the array based representation of the image will be used later in order to prepare the
+        # result image with boxes and labels on it.
+        image_np = self.object_detector.load_image_into_numpy_array(image)
+        # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
+        # image_np_expanded = np.expand_dims(image_np, axis=0)
+        # Actual detection.
+        self.object_detector.load_frozen_tf_model()
 
-            output_dict = object_detector.run_inference_for_single_image(image_np, object_detector.detection_graph)
-            # Visualization of the results of a detection.
-            _, box_class = object_detector.visualize_boxes_and_labels_on_image_array(detection_output_dict=output_dict, image_np= image_np)
+        output_dict = self.object_detector.run_inference_for_single_image(image_np, self.object_detector.detection_graph)
+        # Visualization of the results of a detection.
+        _, box_class = self.object_detector.visualize_boxes_and_labels_on_image_array(detection_output_dict=output_dict, image_np= image_np)
 
-            comp_detail_msg = ""
-            for box_coordinate, component_class in box_class.items():
-                comp_detail_msg += str(component_class) + "\n" + str(box_coordinate) + "\n\n"
+        comp_detail_msg = ""
+        for box_coordinate, component_class in box_class.items():
+            comp_detail_msg += str(component_class) + "\n" + str(box_coordinate) + "\n\n"
 
-            self.component_detail.configure(text=comp_detail_msg)
-            self.component_detail.pack_propagate(1)
+        self.component_detail.configure(text=comp_detail_msg)
+        self.component_detail.pack_propagate(1)
 
-            unresized = Image.fromarray(image_np)
-            image_path = ImageTk.PhotoImage(unresized.resize((560, 370), Image.ANTIALIAS))
-            self.image_lbl.configure(image=image_path)
-            self.image_lbl.pack(self, in_=self.schematic_img_frame)
-            self.schematic_img_frame.pack_propagate(1)
-            self.schematic_img_frame.pack(in_=top)
-            self.component_detail.pack(in_=top)
+        unresized = Image.fromarray(image_np)
+        image_path = ImageTk.PhotoImage(unresized.resize((560, 370), Image.ANTIALIAS))
+        self.image_lbl.configure(image=image_path)
+        self.image_lbl.pack(self, in_=self.schematic_img_frame)
+        self.schematic_img_frame.pack_propagate(1)
+        self.schematic_img_frame.pack(in_=self.top)
+        self.component_detail.pack(in_=self.top)
 
-        def simulate_ckt():
-            #TODO : run the cir file generated for the ngspice and display the output result on a separate window or on this GUI.
-            pass
+    def simulate_ckt(self):
+        #TODO : run the cir file generated for the ngspice and display the output result on a separate window or on this GUI.
+        pass
 
 
 if __name__ == '__main__':
