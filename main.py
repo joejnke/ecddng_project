@@ -62,7 +62,7 @@ def create_ecda_gui(root, *args, **kwargs):
     w = tk.Toplevel(root)
     top = ecda_gui(w)
     ecda_support.init(w, top, *args, **kwargs)
-    return (w, top)
+    return w, top
 
 
 def destroy_ecda_gui():
@@ -119,9 +119,19 @@ class ecda_gui:
         self.process_btn.configure(command=lambda: process_ckt())
         self.process_btn.configure(width=110)
 
+        self.simulate_btn = tk.Button(top)
+        self.simulate_btn.place(relx=0.516, rely=0.913, height=25, width=110)
+        self.simulate_btn.configure(text='''Simulate''')
+        self.simulate_btn.configure(command=lambda: simulate_ckt())
+        self.simulate_btn.configure(width=110)
+
         self.btn_sprtr = ttk.Separator(top)
         self.btn_sprtr.place(relx=0.3, rely=0.893, relheight=0.079)
         self.btn_sprtr.configure(orient="vertical")
+
+        self.btn_sprtr2 = ttk.Separator(top)
+        self.btn_sprtr2.place(relx=0.484, rely=0.893, relheight=0.079)
+        self.btn_sprtr2.configure(orient="vertical")
 
         self.frame_sprtr = ttk.Separator(top)
         self.frame_sprtr.place(relx=0.707, rely=0.06, relheight=0.754)
@@ -140,7 +150,7 @@ class ecda_gui:
         global ckt_image
         object_detector = ecdod.ecddng_obj_detection(MODEL_PATH=MODEL_PATH, PATH_TO_LABELS=PATH_TO_LABELS, NUM_CLASSES=3)
 
-        #end of model initialization
+        # end of model initialization
 
         def open_image():
             global ckt_image
@@ -150,7 +160,7 @@ class ecda_gui:
             unresized = Image.open(ckt_image)
             image_path = ImageTk.PhotoImage(unresized.resize((560, 370), Image.ANTIALIAS))
             self.image_lbl.configure(image=image_path)
-            self.image_lbl.pack(self, fill=BOTH, expand=1)
+            self.image_lbl.pack(self, expand=1)
             self.schematic_img_frame.pack_propagate(1)
             self.schematic_img_frame.pack()
 
@@ -183,6 +193,10 @@ class ecda_gui:
             self.schematic_img_frame.pack_propagate(1)
             self.schematic_img_frame.pack(in_=top)
             self.component_detail.pack(in_=top)
+
+        def simulate_ckt():
+            #TODO : run the cir file generated for the ngspice and display the output result on a separate window or on this GUI.
+            pass
 
 
 if __name__ == '__main__':
