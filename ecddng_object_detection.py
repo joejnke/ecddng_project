@@ -1,3 +1,6 @@
+###Note: add the path to the 'object-detection' folder and 'research/slim' folder into PYTHONPATH
+
+
 import numpy as np
 import os
 import six.moves.urllib as urllib
@@ -22,6 +25,9 @@ from object_detection.utils import visualization_utils as vis_util
 
 
 class ecddng_obj_detection():
+    """
+    run any chosen object detection model on an image
+    """
     def __init__(self, PATH_TO_LABELS, MODEL_PATH ='rlc_graph', NUM_CLASSES=3):
         # What model to download.
         self.MODEL_PATH = MODEL_PATH
@@ -104,7 +110,7 @@ class ecddng_obj_detection():
         return output_dict
 
     def visualize_boxes_and_labels_on_image_array(self, detection_output_dict, image_np, fig_size=(12, 8)):
-        vis_util.visualize_boxes_and_labels_on_image_array(
+        _, box_class = vis_util.visualize_boxes_and_labels_on_image_array(
             image_np,
             detection_output_dict['detection_boxes'],
             detection_output_dict['detection_classes'],
@@ -115,7 +121,7 @@ class ecddng_obj_detection():
             line_thickness=8)
         plt.figure(figsize=fig_size)
         image_np = plt.imshow(image_np)
-        return image_np
+        return image_np, box_class
 
     def run_inference_for_multiple_image(self):
         #TODO
