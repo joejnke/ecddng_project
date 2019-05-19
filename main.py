@@ -7,6 +7,9 @@
 
 import sys
 import ecddng_object_detection as ecdod
+import numpy as np
+import pandas as pd
+from scipy.spatial import distance
 
 try:
     import Tkinter as tk
@@ -144,12 +147,13 @@ class ecda_gui:
         self.component_detail.configure(text='''Message''')
         self.component_detail.configure(width=231)
 
-        #initializing the detection model
+        # initializing the detection model
 
         self.MODEL_PATH = '/home/kira/cloned/tensorflow object detection API/models/research/object_detection/rlc_graph'
         self.PATH_TO_LABELS = '/home/kira/cloned/tensorflow object detection API/models/research/object_detection/training/object-detection.pbtxt'
         global ckt_image
-        self.object_detector = ecdod.ecddng_obj_detection(MODEL_PATH=self.MODEL_PATH, PATH_TO_LABELS=self.PATH_TO_LABELS, NUM_CLASSES=3)
+        self.object_detector = ecdod.ecddng_obj_detection(MODEL_PATH=self.MODEL_PATH,
+                                                          PATH_TO_LABELS=self.PATH_TO_LABELS, NUM_CLASSES=3)
 
         # end of model initialization
 
@@ -176,9 +180,11 @@ class ecda_gui:
         # Actual detection.
         self.object_detector.load_frozen_tf_model()
 
-        output_dict = self.object_detector.run_inference_for_single_image(image_np, self.object_detector.detection_graph)
+        output_dict = self.object_detector.run_inference_for_single_image(image_np,
+                                                                          self.object_detector.detection_graph)
         # Visualization of the results of a detection.
-        _, box_class = self.object_detector.visualize_boxes_and_labels_on_image_array(detection_output_dict=output_dict, image_np= image_np)
+        _, box_class = self.object_detector.visualize_boxes_and_labels_on_image_array(detection_output_dict=output_dict,
+                                                                                      image_np=image_np)
 
         comp_detail_msg = ""
         for box_coordinate, component_class in box_class.items():
@@ -196,8 +202,40 @@ class ecda_gui:
         self.component_detail.pack(in_=self.top)
 
     def simulate_ckt(self):
-        #TODO : run the cir file generated for the ngspice and display the output result on a separate window or on this GUI.
+        # TODO : run the cir file generated for the ngspice and display the output result on a separate window or on this GUI.
         pass
+
+    def center_comparison_item_matcher(dict_of_elements, dict_of_component_details, dict_of_nodes):
+
+        # comparing center coordinates of elements and component details and
+        # reordering the component details dictionary in the same way as the order of the elements dictionary.
+
+        dist_element_detail = distance.cdist(list(dict_of_elements['Coordinate']),
+                                             list(dict_of_component_details['Coordinate']), metric='euclidean')
+        temp_order = dist_element_detail.argmin(axis=1)
+
+        dict_of_component_details['Label'] = list(np.array(dict_of_component_details['Label'])[temp_order])
+        dict_of_component_details['Value'] = list(np.array(dict_of_component_details['Value'])[temp_order])
+        dict_of_component_details['Coordinate'] = list(np.array(dict_of_component_details['Coordinate'])[temp_order])
+
+        # comparing center coordinates of elements and nodes and
+        # reordering the nodes dictionary in the same way as the order of the elements dictionary.
+
+        dist_element_node = distance.cdist(list(dict_of_elements['Coordinate']), list(dict_of_nodes['Coordinate']),
+                                           metric='euclidean')
+        temp_node_list = []
+        [temp_node_list.append(list(i[:2])) for i in dist_element_node.argsort(axis=1)]
+        temp_node_list = np.array(temp_node_list)  # .reshape(1, -1)
+
+        dict_of_nodes['Coordinate'] = list(np.array(dict_of_nodes['Coordinate'])[temp_node_list])
+        dict_of_nodes['Node'] = list(np.array(dict_of_nodes['Node'])[temp_node_list])
+
+        dit = {**dict_of_elements, **dict_of_component_details, **dict_of_nodes}
+        df_of_output = pd.DataFrame(data=dit)
+        _ = df_of_output.pop('Coordinate')
+        print(dict_of_elements, '\n', dict_of_component_details, '\n', dict_of_nodes, '\n', df_of_output)
+
+        return df_of_output
 
 
 if __name__ == '__main__':
