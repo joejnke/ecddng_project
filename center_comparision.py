@@ -57,9 +57,12 @@ def center_comparison_item_matcher(dict_of_elements, dict_of_component_details, 
     dict_of_nodes['Coordinate'] = list(np.array(dict_of_nodes['Coordinate'])[temp_node_list])
     dict_of_nodes['Node'] = list(np.array(dict_of_nodes['Node'])[temp_node_list])
 
-    print(dict_of_elements, '\n', dict_of_component_details, '\n', dict_of_nodes)
+    dit = {**dict_of_elements, **dict_of_component_details, **dict_of_nodes}
+    df_of_output = pd.DataFrame(data=dit)
+    _ = df_of_output.pop('Coordinate')
+    print(dict_of_elements, '\n', dict_of_component_details, '\n', dict_of_nodes, '\n', df_of_output)
 
-    #return df_of_output
+    return df_of_output
 
 
 __end__ = '__end__'
