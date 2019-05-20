@@ -205,7 +205,7 @@ class ecda_gui:
         # TODO : run the cir file generated for the ngspice and display the output result on a separate window or on this GUI.
         pass
 
-    def center_comparison_item_matcher(dict_of_elements, dict_of_component_details, dict_of_nodes):
+    def center_comparison_item_matcher(self, dict_of_elements, dict_of_component_details, dict_of_nodes):
 
         # comparing center coordinates of elements and component details and
         # reordering the component details dictionary in the same way as the order of the elements dictionary.
