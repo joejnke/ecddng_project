@@ -228,7 +228,7 @@ if __name__ == '__main__':
     df = center_comparison_item_matcher(dict_of_elements=dict_of_elements,
                                         dict_of_component_details=dict_of_component_details,
                                         dict_of_nodes=dict_of_nodes)
-
+    print(df)
     # test generate_cir() function
     generate_cir(df, title='Circuit with manual inputs')
     pass
