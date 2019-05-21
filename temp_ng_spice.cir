@@ -1,0 +1,8 @@
+Circuit with manual inputs
+V1	0 1	10V
+R1	1 2	10K
+H1	2 3	0.5H
+C1	0 2	0.65uF
+R2	0 3	3K
+.op
+.end

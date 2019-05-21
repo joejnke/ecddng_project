@@ -3,6 +3,7 @@ import pandas as pd
 from scipy.spatial import distance
 import pytesseract
 from pytesseract import Output
+# import cv2
 
 dict_of_elements = {'Type': ['Dc_voltage', 'Resistor', 'Inductor', 'Capacitor', 'Resistor'],
                     'Coordinate': [(0.3, 0.1), (0.1, 0.3), (0.1, 0.8), (0.3, 0.5), (0.3, 0.9)]}
@@ -89,6 +90,41 @@ def obj_type_center_coord(box_class):
     return obj_dict
 
 
+def pre_process_and_run_ocr(image_path):
+    """
+        process the image before it's passed to the tesseract ocr inorder to enhance the detection accuracy
+
+    :param image_path: string of the image's path.
+    :return: img: processed image that is ready for ocr to be applied.
+    """
+
+    img = cv2.imread(image_path)
+
+    # Rescale the image, if needed.
+    # img = cv2.resize(img, None, fx=1.5, fy=1.5, interpolation=cv2.INTER_CUBIC)
+    # img = cv2.resize(img, None, fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
+
+    # Convert to gray
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Apply dilation and erosion to remove some noise
+    kernel = np.ones((1, 1), np.uint8)
+    img = cv2.dilate(img, kernel, iterations=1)
+    img = cv2.erode(img, kernel, iterations=1)
+
+    # Apply blur to smooth out the edges
+    img = cv2.bilateralFilter(img, 9, 75, 75)
+
+    # Thresholding types
+    # img=cv2.threshold(img,127,255,cv2.THRESH_BINARY)
+    # img=cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
+
+    tesser_output = pytesseract.image_to_data(img, lang='Greek+eng', config='--psm 12', output_type=Output.DICT)
+
+    return tesser_output
+
+
 # function for creating a dictionary with the detected text and its bounding box center coordinate. (Y,X) COORDINATES
 # ARE USED. SAMPLE INPUT ==> tesser_output={'level': [1, 2, 3, 4, 5, 5, 5, 4, 5], 'page_num': [1, 1, 1, 1, 1, 1, 1,
 # 1, 1], 'block_num': [0, 1, 1, 1, 1, 1, 1, 1, 1], 'par_num': [0, 0, 1, 1, 1, 1, 1, 1, 1], 'line_num': [0, 0, 0, 1,
@@ -124,6 +160,28 @@ def ocr_text_center_coord(tesser_output, image_height_width):
     return ocr_dict
 
 
+def generate_cir(df_of_elements, title='Circuit definition'):
+    temp_file = open('temp_ng_spice.cir', 'w')
+    temp_file.writelines([title, '\n'])
+
+    # component definition
+    for row in df_of_elements.itertuples(index=False):
+        element_type, label, value, node = row
+        start_node = node[0]
+        end_node = node[1]
+        node = str(start_node) + ' ' + str(end_node)
+        temp_file.writelines([label, '\t', node, '\t', value, '\n'])
+
+    # Footer definition
+    closing1 = '.op'
+    closing2 = '.end'
+    footer = [closing1, '\n', closing2]
+
+    # Write footer to file
+    temp_file.writelines(footer)
+    temp_file.close()
+
+
 class ElectricalElmnt:
     # make them unaccessable from outside
 
@@ -143,27 +201,34 @@ class ElectricalCkt:
     # function to generate netlist and export the netlist to python commands which
     # will be later used to redraw the circuit diagram using the scheme draw python package
     def export_to_schem_draw(self):
+        # TODO
         pass
 
     # function to generate and export netlist of the circuit to a cir file which will be used
     # by ngspice for simulation
     def export_to_cir(self):
+        # TODO
         pass
 
     # function to redraw and display the circuit diagram usng the scheme draw python package
     def draw_ckt(self):
+        # TODO
         pass
 
     # function to start simulation on the circuit using ngspice
     def simulate(self):
+        # TODO
         pass
 
 
 __end__ = '__end__'
 
 if __name__ == '__main__':
-    print(center_comparison_item_matcher(dict_of_elements=dict_of_elements,
-                                         dict_of_component_details=dict_of_component_details,
-                                         dict_of_nodes=dict_of_nodes))
+    # test center_comparison_item_matcher() function
+    df = center_comparison_item_matcher(dict_of_elements=dict_of_elements,
+                                        dict_of_component_details=dict_of_component_details,
+                                        dict_of_nodes=dict_of_nodes)
 
+    # test generate_cir() function
+    generate_cir(df, title='Circuit with manual inputs')
     pass
